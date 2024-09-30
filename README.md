@@ -1,4 +1,4 @@
-# Redbee Challenge - Simpsons Quotes API
+# Simpsons Quotes API
 
 Se tiene una API hecha en Python con FastApi+SQLAlchemy y su correspondiente Base de datos en MySQL.
 
