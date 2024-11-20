@@ -27,18 +27,11 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
-        env:
-        - name: DB_HOST
-          value: simpsons-quotes-mysql
-        - name: DB_PORT
-          value: "3306"
-        - name: DB_USER
-          value: root
-        - name: DB_PASS
-          valueFrom:
-            secretKeyRef:
-              name: mysql-pass
-              key: password
+        envFrom:
+        - configMapRef:
+            name: simpsons-quotes-cfg
+        - secretRef:
+            name: simpsons-quotes-sct
         resources:
           requests:
             memory: "512Mi"

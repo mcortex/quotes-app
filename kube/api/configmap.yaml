@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simpsons-quotes-cfg
+  labels:
+    app: simpsons-quotes
+data:
+  DB_HOST: simpsons-quotes-mysql
+  DB_PORT: 3306

@@ -20,12 +20,9 @@ spec:
       containers:
       - image: mysql:8.0.29
         name: mysql
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-pass
-              key: password
+        envFrom:
+        - secretRef:
+            name: mysql-pass
         resources:
           requests:
             memory: "512Mi"
@@ -37,9 +34,14 @@ spec:
         - containerPort: 3306
           name: mysql
         volumeMounts:
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
       volumes:
+      - name: mysql-initdb
+        configMap:
+          name: mysql-initdb-cfg
       - name: mysql-persistent-storage
         persistentVolumeClaim:
           claimName: mysql-pv-claim
