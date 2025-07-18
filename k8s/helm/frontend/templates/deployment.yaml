@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.service_name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.labels.app }}
+    tier: {{ .Values.labels.tier }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ .Values.labels.app }}
+      tier: {{ .Values.labels.tier }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.labels.app }}
+        tier: {{ .Values.labels.tier }}
+    spec:
+      containers:
+        - name: {{ .Values.deployment.image.name }}
+          image: {{ .Values.deployment.image.name }}:{{ .Values.deployment.image.tag }}
+          imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.http.target_port }}
+          envFrom:
+          - configMapRef:
+              name: {{ .Values.service_name }}-config
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.deployment.probes.path }}
+              port: {{ .Values.deployment.probes.port }}
+              scheme: {{ .Values.deployment.probes.scheme }}
+{{ toYaml .Values.deployment.probes.readiness | indent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.deployment.probes.path }}
+              port: {{ .Values.deployment.probes.port }}
+              scheme: {{ .Values.deployment.probes.scheme }}
+{{ toYaml .Values.deployment.probes.liveness | indent 12 }}
+          resources:
+            requests:
+              memory: {{ .Values.deployment.resources.requests.memory }}
+              cpu: {{ .Values.deployment.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.deployment.resources.limits.memory }}
+              cpu: {{ .Values.deployment.resources.limits.cpu }}

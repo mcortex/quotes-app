@@ -1,13 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: simpsons-quotes-mysql
+  name: quotes-db-service
+  namespace: quotes-app
   labels:
-    app: simpsons-quotes
+    app: quotes
 spec:
+  selector:
+    app: quotes
+    tier: mysql
   ports:
     - port: 3306
-  selector:
-    app: simpsons-quotes
-    tier: mysql
-  clusterIP: None
+      targetPort: 3306
+      protocol: TCP
+      name: mysql
+  clusterIP: None # This makes the service headless, allowing direct access to the pods

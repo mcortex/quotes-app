@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotes-frontend
+  namespace: quotes-app
+  labels:
+    app: quotes
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quotes
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: quotes
+        tier: frontend
+    spec:
+      containers:
+        - name: quotes-frontend
+          image: quotes-frontend:v0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: VITE_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: quotes-frontend-config
+                  key: vite-api-url
+          readinessProbe:
+            httpGet:
+              path: /health.html # Simple static HTML file
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health.html
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

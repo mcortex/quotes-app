@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.service_name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: {{ .Values.service_name }}-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.labels.app }}
+      tier: {{ .Values.labels.tier }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.labels.app }}
+        tier: {{ .Values.labels.tier }}
+    spec:
+      containers:
+        - name: {{ .Values.statefulset.image.name }}
+          image: {{ .Values.statefulset.image.name }}:{{ .Values.statefulset.image.tag }}
+          imagePullPolicy: {{ .Values.statefulset.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.http.target_port }}
+              name: {{ .Values.service.http.name }}
+          envFrom:
+          - configMapRef:
+              name: {{ .Values.service_name }}-config
+          - secretRef:
+              name: {{ .Values.service_name }}-secret
+          volumeMounts:
+            - name: {{ .Values.service_name }}-storage
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping"]
+{{ toYaml .Values.statefulset.probes.liveness | indent 12 }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'mysql -h localhost -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "SELECT 1"'
+{{ toYaml .Values.statefulset.probes.readiness | indent 12 }}
+          resources:
+            requests:
+              memory: {{ .Values.statefulset.resources.requests.memory }}
+              cpu: {{ .Values.statefulset.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.statefulset.resources.limits.memory }}
+              cpu: {{ .Values.statefulset.resources.limits.cpu }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ .Values.service_name }}-storage
+      spec:
+        accessModes: {{ .Values.statefulset.volumeClaimTemplates.spec.accessModes }}
+        storageClassName: {{ .Values.statefulset.volumeClaimTemplates.spec.storageClassName }} # used by default in kind
+        resources:
+          requests:
+            storage: 1Gi

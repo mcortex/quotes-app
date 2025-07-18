@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: quotes-db
+  namespace: quotes-app
+spec:
+  serviceName: quotes-db-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quotes
+      tier: mysql
+  template:
+    metadata:
+      labels:
+        app: quotes
+        tier: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:9.3.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: quotes-db-secret
+                  key: root-password
+            - name: MYSQL_DATABASE
+              value: "quotes"
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: quotes-db-secret
+                  key: db-user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: quotes-db-secret
+                  key: db-password
+          volumeMounts:
+            - name: quotes-db-storage
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'mysql -h localhost -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" -e "SELECT 1"'
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            timeoutSeconds: 1
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+  volumeClaimTemplates:
+    - metadata:
+        name: quotes-db-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "standard" # used by default in kind
+        resources:
+          requests:
+            storage: 1Gi

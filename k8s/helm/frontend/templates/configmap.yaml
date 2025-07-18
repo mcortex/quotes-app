@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quotes-frontend-config
+  namespace: quotes-app
+  labels:
+    app: quotes
+data:
+  VITE_API_URL: "http://quotes.local/api"

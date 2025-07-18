@@ -1,5 +1,5 @@
-fastapi
-uvicorn
-sqlalchemy
+fastapi[standard]
+uvicorn[standard]
+sqlmodel
 pymysql
 cryptography

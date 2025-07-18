@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quotes-api-config
+  namespace: quotes-app
+  labels:
+    app: quotes
+data:
+  DB_HOST: "quotes-db-0.quotes-db-service.quotes-app.svc.cluster.local"
+  DB_PORT: "3306"
+  DB_NAME: "quotes"

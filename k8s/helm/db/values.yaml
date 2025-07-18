@@ -1,0 +1,49 @@
+service_name: quotes-db
+namespace: quotes-app
+domain_name: quotes.local
+
+labels:
+  app: quotes
+  tier: mysql
+
+statefulset:
+  image:
+    name: mysql
+    tag: "9.3.0"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1024Mi"
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+  probes:
+    path: /health
+    port: 8000
+    scheme: HTTP
+    readiness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+    liveness:
+      initialDelaySeconds: 5
+      periodSeconds: 2
+      timeoutSeconds: 1
+  volumeClaimTemplates:
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "standard"
+service:
+  http:
+    name: mysql
+    port: 3306
+    target_port: 3306
+    protocol: TCP
+  clusterIP: None # Headless service for direct pod access
+configmap:
+  MYSQL_DATABASE: "quotes"
+secret:
+  MYSQL_ROOT_PASSWORD: UGFzc3dvcmQxMjMq # base64 encoded "Password123*"
+  MYSQL_PASSWORD: YXBwdXNlcnBhc3Mq # base64 encoded "appuserpass*"
+  MYSQL_USER: YXBwdXNlcg== # base64 encoded "appuser"

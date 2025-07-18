@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotes-api
+  namespace: quotes-app
+  labels:
+    app: quotes
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quotes
+      tier: api
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: quotes
+        tier: api
+    spec:
+      containers:
+        - image: quotes-api:v0.1.0
+          name: quotes-api
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: quotes-api-config
+            - secretRef:
+                name: quotes-api-secret
+          readinessProbe: # Readiness Probe: Determines if the container is ready to receive traffic
+            httpGet:
+              path: /api/health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 10 # Wait 10s before first check
+            periodSeconds: 5 # Check every 5 seconds
+            timeoutSeconds: 3 # Timeout after 3 seconds
+            successThreshold: 1 # 1 success = ready
+            failureThreshold: 3 # 3 failures = not ready
+          livenessProbe: # Liveness Probe: Determines if the container should be restarted
+            httpGet:
+              path: /api/health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 30 # Wait 30s before first check
+            periodSeconds: 10 # Check every 10 seconds
+            timeoutSeconds: 5 # Timeout after 5 seconds
+            successThreshold: 1 # 1 success = alive
+            failureThreshold: 3 # 3 failures = restart container
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "1"
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

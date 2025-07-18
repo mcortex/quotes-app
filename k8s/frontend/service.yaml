@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: quotes-frontend-service
+  namespace: quotes-app
+  labels:
+    app: quotes
+spec:
+  selector:
+    app: quotes
+    tier: frontend
+  ports:
+    - name: http-frontend
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  type: ClusterIP

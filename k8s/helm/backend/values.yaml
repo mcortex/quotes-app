@@ -1,0 +1,52 @@
+service_name: quotes-api
+namespace: quotes-app
+domain_name: quotes.local
+
+labels:
+  app: quotes
+  tier: api
+
+deployment:
+  image:
+    name: quotes-api
+    tag: "v0.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "1"
+      memory: "1024Mi"
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+  probes:
+    path: /api/health
+    port: 8000
+    scheme: HTTP
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 3
+      successThreshold: 1
+      failureThreshold: 3
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      successThreshold: 1
+      failureThreshold: 3
+service:
+  http:
+    name: http
+    port: 8000
+    protocol: TCP
+    target_port: 8000
+  type: ClusterIP
+ingress:
+  class_name: nginx
+configmap:
+  DB_HOST: "quotes-db-0.quotes-db-service.quotes-app.svc.cluster.local"
+  DB_PORT: "3306"
+  DB_NAME: "quotes"
+secret:
+  DB_PASS: YXBwdXNlcnBhc3Mq
+  DB_USER: YXBwdXNlcg==
